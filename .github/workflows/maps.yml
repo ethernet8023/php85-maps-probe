@@ -4,10 +4,11 @@ jobs:
   dump:
     runs-on: ubuntu-latest
     steps:
-      - name: run image without ASLR and dump libphp maps
+      - name: run
         run: |
-          docker run -d --name t php:8.5.11-apache bash -c 'setarch x86_64 -R apache2-foreground & sleep 8; pid=$(pgrep -o apache2); echo "PID=$pid"; grep libphp /proc/$pid/maps | head -8; echo ---SELFTEST---; pid2=$(pgrep apache2 | head -1); grep libphp /proc/$pid2/maps | head -2; curl -s -o /dev/null -w "http:%{http_code}\n" http://127.0.0.1/ || true; sleep 2'
-          sleep 30
-          docker logs t 2>&1 | tee maps.txt
+          set -x
+          docker run -d --name phpmap php:8.5.11-apache bash -c "setarch x86_64 -R apache2-foreground >/dev/null 2>&1 & sleep 8; pgrep apache2 | head -3; pid=\$(pgrep -o apache2); echo PID=\$pid; grep libphp /proc/\$pid/maps | head -6; echo ---; curl -s -o /dev/null -w 'http:%{http_code}\n' http://127.0.0.1/; sleep 2"
+          sleep 40
+          docker logs phpmap 2>&1 | tee maps.txt
       - name: show
         run: cat maps.txt
