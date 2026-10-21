@@ -6,7 +6,7 @@ jobs:
     steps:
       - name: run
         run: |
-          docker run -d --name phpmap php:8.5.11-apache bash -c "which setarch && setarch x86_64 -R bash -c 'apache2-foreground >/ap.log 2>&1 & sleep 6; pid=\$(pgrep -o apache2); echo PID=\$pid; echo BASELINE:; grep -m1 libphp /proc/\$pid/maps; grep -m1 \"/usr/sbin/apache2\$\" /proc/\$pid/maps; echo DTOR: python3 -c \"print(hex(0))\" 2>/dev/null; grep -m2 'r-xp' /proc/\$pid/maps; echo ---; curl -s -o /dev/null -w 'http:%{http_code}\n' http://127.0.0.1/'"
+          docker run -d --name phpmap --security-opt seccomp=unconfined php:8.5.11-apache bash -c "setarch x86_64 -R bash -c 'apache2-foreground >/ap.log 2>&1 & sleep 6; pid=\$(pgrep -o apache2); echo PID=\$pid; echo ---MAPS---; grep libphp /proc/\$pid/maps | head -3; grep -m1 bin/apache2 /proc/\$pid/maps; echo ---HTTP---; curl -s -o /dev/null -w \"http:%{http_code}\n\" http://127.0.0.1/'"
           sleep 40
           docker logs phpmap 2>&1 | tee maps.txt
       - name: show
