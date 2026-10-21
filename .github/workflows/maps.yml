@@ -6,8 +6,7 @@ jobs:
     steps:
       - name: run
         run: |
-          set -x
-          docker run -d --name phpmap php:8.5.11-apache bash -c "setarch x86_64 -R apache2-foreground >/dev/null 2>&1 & sleep 8; pgrep apache2 | head -3; pid=\$(pgrep -o apache2); echo PID=\$pid; grep libphp /proc/\$pid/maps | head -6; echo ---; curl -s -o /dev/null -w 'http:%{http_code}\n' http://127.0.0.1/; sleep 2"
+          docker run -d --name phpmap php:8.5.11-apache bash -c "which setarch; setarch x86_64 -R true && echo SETARCH_OK; apache2-foreground > /ap.log 2>&1 & sleep 6; pgrep -a apache2 | head -3; tail -5 /ap.log; pid=\$(pgrep -o apache2); echo PID=\$pid; grep libphp /proc/\$pid/maps | head -6; echo ---; curl -s -o /dev/null -w 'http:%{http_code}\n' http://127.0.0.1/"
           sleep 40
           docker logs phpmap 2>&1 | tee maps.txt
       - name: show
